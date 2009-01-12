@@ -24,6 +24,9 @@ sub spotify_playing
     if ($? eq 0) {
         Irssi::active_win->command("/me ♪ $text $data");
     }
+    else {
+        Irssi::print("Could not get currently playing song."); 
+    }
 }
 
 Irssi::command_bind np => \&spotify_playing;
