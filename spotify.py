@@ -72,6 +72,8 @@ def now_playing_idx(file):
     idx = None
     with open(file, 'r') as f:
         data = f.read()
+        if data.find('"playing_track_id":null') != -1:
+            return None
         key = '"playing_track_id":"'
         start = data.find(key) + len(key)
         end = data.find('"', start)
@@ -94,7 +96,10 @@ class SpotifyEntry(object):
 
 
     def __str__(self):
-        return "%s - %s (%s)" % (self.artist, self.title, self.uri())
+        if self.artist and self.title:
+            return "%s - %s (%s)" % (self.artist, self.title, self.uri())
+        else:
+            return self.uri()
 
 
 class SpotifyClient(object):
@@ -108,8 +113,11 @@ class SpotifyClient(object):
 
 
     def get(self, idx):
-        entry = self.meta[idx]
-        return SpotifyEntry(entry['artist'], entry['title'], idx)
+        try:
+            entry = self.meta[idx]
+            return SpotifyEntry(entry['artist'], entry['title'], idx)
+        except KeyError:
+            return SpotifyEntry(None, None, idx)
 
 
     def now_playing(self):
@@ -124,17 +132,21 @@ def main():
 
     if os.name != 'posix':
         sys.exit(1)
+
+    home_dir = os.environ["HOME"]
+    sys_user = os.environ["USER"]
+    spotify_login = os.environ["SPOTIFY_LOGIN"]
+    spotify_data_dir = "%s/.wine/drive_c/windows/profiles/%s" \
+                       "/Application Data/Spotify/Users/%s-user" \
+                       % (home_dir, sys_user, spotify_login)
     
     try:
-        home_dir = os.environ["HOME"]
-        sys_user = os.environ["USER"]
-        spotify_login = os.environ["SPOTIFY_LOGIN"]
-        spotify_data_dir = "%s/.wine/drive_c/windows/profiles/%s" \
-                           "/Application Data/Spotify/Users/%s-user" \
-                           % (home_dir, sys_user, spotify_login)
-
         client = SpotifyClient(spotify_data_dir)
-        print client.update().now_playing()
+        playing = client.update().now_playing()
+        if playing is None:
+            sys.exit(1)
+        else:
+            print playing
     except:
         sys.exit(1)
     else:
