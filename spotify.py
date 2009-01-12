@@ -127,13 +127,13 @@ def main():
     
     home_dir = os.environ["HOME"]
     sys_user = os.environ["USER"]
-    spotify_login = "b702003"
+    spotify_login = os.environ["SPOTIFY_LOGIN"]
     spotify_data_dir = "%s/.wine/drive_c/windows/profiles/%s" \
                        "/Application Data/Spotify/Users/%s-user" \
                        % (home_dir, sys_user, spotify_login)
 
     client = SpotifyClient(spotify_data_dir)
-    print "Now playing: %s" % client.update().now_playing()
+    print client.update().now_playing()
     sys.exit(0)
 
 
