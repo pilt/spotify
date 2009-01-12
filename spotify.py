@@ -45,10 +45,10 @@ def base62_encode(hex):
 
 def parse_metadata(file):
     meta = {}
-    with open(file) as f:
+    with open(file, 'r') as f:
         data = f.read()
         data = data[data.find("\r\n") + 2:]
-        artists_d, _, songs_d = data.split("\r\n\r\n")
+        artists_d, _, songs_d = data.strip().split("\r\n\r\n")
     
         artists = {}
         for entry in artists_d.split("\r\n"):
@@ -70,7 +70,7 @@ def parse_metadata(file):
 
 def now_playing_idx(file):
     idx = None
-    with open(file) as f:
+    with open(file, 'r') as f:
         data = f.read()
         key = '"playing_track_id":"'
         start = data.find(key) + len(key)
