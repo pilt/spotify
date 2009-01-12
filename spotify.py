@@ -125,16 +125,19 @@ def main():
     if os.name != 'posix':
         sys.exit(1)
     
-    home_dir = os.environ["HOME"]
-    sys_user = os.environ["USER"]
-    spotify_login = os.environ["SPOTIFY_LOGIN"]
-    spotify_data_dir = "%s/.wine/drive_c/windows/profiles/%s" \
-                       "/Application Data/Spotify/Users/%s-user" \
-                       % (home_dir, sys_user, spotify_login)
+    try:
+        home_dir = os.environ["HOME"]
+        sys_user = os.environ["USER"]
+        spotify_login = os.environ["SPOTIFY_LOGIN"]
+        spotify_data_dir = "%s/.wine/drive_c/windows/profiles/%s" \
+                           "/Application Data/Spotify/Users/%s-user" \
+                           % (home_dir, sys_user, spotify_login)
 
-    client = SpotifyClient(spotify_data_dir)
-    print client.update().now_playing()
-    sys.exit(0)
+        client = SpotifyClient(spotify_data_dir)
+        print client.update().now_playing()
+        sys.exit(0)
+    except:
+        sys.exit(1)
 
 
 if __name__ == '__main__':
