@@ -22,7 +22,7 @@ sub spotify_playing
 	return unless $witem;
 	$login = Irssi::settings_get_str("login");
 	$script = Irssi::settings_get_str("script_path");
-    $text = `SPOTIFY_LOGIN=$login python $script`;
+    $text = `sh $script`;
     if ($? eq 0) {
         Irssi::active_win->command("/me ♪ $text $data");
     }
@@ -37,7 +37,7 @@ sub spotify_show
 	return unless $witem;
 	$login = Irssi::settings_get_str("login");
 	$script = Irssi::settings_get_str("script_path");
-    $text = `SPOTIFY_LOGIN=$login python $script`;
+    $text = `sh $script`;
     if ($? eq 0) {
         $text =~ s/\s+$//;
         Irssi::print("♪ $text $data");
@@ -50,4 +50,4 @@ sub spotify_show
 Irssi::command_bind np => \&spotify_playing;
 Irssi::command_bind nps => \&spotify_show;
 Irssi::settings_add_str("spotify", "login", "b702003");
-Irssi::settings_add_str("spotify", "script_path", "~/.irssi/scripts/spotify.py");
+Irssi::settings_add_str("spotify", "script_path", "~/.irssi/scripts/spotify_playing.sh");
