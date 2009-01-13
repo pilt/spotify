@@ -16,13 +16,12 @@ $VERSION = '1.0';
 
 sub spotify_playing
 {
-	my($data, $server, $witem, $text, $login, $script) = @_;
+	my($data, $server, $witem, $text, $script) = @_;
 	return unless $witem;
-	$login = Irssi::settings_get_str("login");
 	$script = Irssi::settings_get_str("script_path");
     $text = `sh $script`;
     if ($? eq 0) {
-        Irssi::active_win->command("/me ♪ $text $data");
+        Irssi::active_win->command("/me ♪ $text");
     }
     else {
         Irssi::print("Could not get currently playing song."); 
@@ -30,5 +29,4 @@ sub spotify_playing
 }
 
 Irssi::command_bind np => \&spotify_playing;
-Irssi::settings_add_str("spotify", "login", "b702003");
 Irssi::settings_add_str("spotify", "script_path", "~/.irssi/scripts/spotify_playing.sh");
