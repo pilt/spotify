@@ -1,5 +1,10 @@
 How To Install Irssi Script
 ===========================
-1. Put spotify.pl and spotify_playing.sh in ~/.irssi/scripts.
+1. Put spotify.pl, spotify_playing.sh in ~/.irssi/scripts.
 2. Run `/script load spotify.pl` in Irssi.
 3. Try the script by running `/np` in Irssi.
+
+C Version
+---------
+If you want a faster version, nun `make' and put spotify_playing in
+~/.irssi/scripts.
