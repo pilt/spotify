@@ -141,7 +141,8 @@ _parse_win_title(gchar *win_title, gchar **artist, gchar **title)
 
 static inline gboolean _win_title(pid_t pid, gchar **title)
 {
-    Display *display = XOpenDisplay(0);
+    /* FIXME: What about multi-head setups? */
+    Display *display = XOpenDisplay(NULL);
     Window root = XDefaultRootWindow(display);
     gchar *tmp_title = NULL;
 
