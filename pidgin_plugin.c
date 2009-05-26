@@ -198,9 +198,7 @@ static gboolean _refresh(spotify *res)
 
 extern gboolean spotify_update_playing(spotify *res)
 {
-    if (_refresh(res) == FALSE)
-        return FALSE;
-    return TRUE;
+    return _refresh(res);
 }
 
 static inline gboolean 
