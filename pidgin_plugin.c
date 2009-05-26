@@ -400,7 +400,8 @@ plugin_load (PurplePlugin * plugin)
     static gboolean
 plugin_unload (PurplePlugin * plugin)
 {
-    spotify_free(spotify_handle);
+    purple_timeout_remove(spotify_handle);
+    spotify_free(spot);
     return TRUE;
 }
 
