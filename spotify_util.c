@@ -106,9 +106,7 @@ static inline void _free_artist_title(spotify *res)
 static inline gboolean _pid(spotify *res)
 {
     res->pid = -1;
-    if (_spotify_pid(&res->pid) == FALSE)
-        return FALSE;
-    return TRUE;
+    return _spotify_pid(&res->pid);
 }
 
 static gboolean _refresh(spotify *res)
@@ -153,9 +151,7 @@ static gboolean _refresh(spotify *res)
 
 extern gboolean spotify_update_playing(spotify *res)
 {
-    if (_refresh(res) == FALSE)
-        return FALSE;
-    return TRUE;
+    return _refresh(res);
 }
 
 static inline gboolean 
