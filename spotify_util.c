@@ -159,8 +159,7 @@ _artist_title(spotify *res)
 
 static inline gboolean _window(spotify *res)
 {
-    res->display = NULL;
-    res->window = NULL;
+    _free_window(res);
 
     /* FIXME: What about multi-head setups? */
     Display *display = XOpenDisplay(NULL);
@@ -176,10 +175,13 @@ static inline gboolean _window(spotify *res)
 
 static inline void _free_window(spotify *res)
 {
-    if (res->display == NULL)
-        return;
-    
-    XCloseDisplay(res->display);
+    if (res->display != NULL) {
+        XCloseDisplay(res->display);
+        res->display = NULL;
+    }
+    if (res->window != NULL) {
+        res->window = NULL;
+    }
 }
 
 static void _search_window(Display *display, Window w, spotify *res)
