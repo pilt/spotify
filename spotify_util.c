@@ -22,7 +22,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdlib.h>
 #include <limits.h>
 #include "spotify_util.h"
-#include <stdio.h>
 
 static inline gboolean _spotify_pid(pid_t *);
 static inline gboolean _artist_title(spotify *);
@@ -118,13 +117,11 @@ static gboolean _refresh(spotify *res)
     gboolean got_title = FALSE;
 
     if (res->pid == -1) {
-        puts("just started, find pid");
         pid_changed = TRUE;
         if (_pid(res) == FALSE)
             return FALSE;
     }
     else {
-        puts("find new pid");
         pid_t last_pid = res->pid;
 
         if (_pid(res) == FALSE)
@@ -135,13 +132,11 @@ static gboolean _refresh(spotify *res)
     }
 
     if (pid_changed || res->window == NULL) {
-        puts("just started OR pid changed, find window");
         if (_window(res) == FALSE)
             return FALSE;
     }
     
     if (got_title == FALSE) {
-        puts("fetch title");
         if (_win_title(res) == FALSE)
             return FALSE;
     }
@@ -149,7 +144,6 @@ static gboolean _refresh(spotify *res)
     if (_artist_title(res) == FALSE) {
         return FALSE;
     }
-    puts("artist / title found");
 
     return TRUE;
 }
