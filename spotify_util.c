@@ -122,6 +122,9 @@ static gboolean _refresh(spotify *res)
             return FALSE;
     }
     else {
+        /* FIXME: It is unnecessary to fetch a new PID all the time. We should
+         * start by trying to "ping" the previously used process.
+         */
         pid_t last_pid = res->pid;
 
         if (_pid(res) == FALSE)
