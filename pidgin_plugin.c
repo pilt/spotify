@@ -1,8 +1,7 @@
 /*
- * Hello World Plugin
+ * Spotify "Now Listening" Plugin
  *
- * Copyright (C) 2004, Gary Kramlich <grim@guifications.org>,
- *               2007, John Bailey <rekkanoryo@cpw.pidgin.im>
+ * Copyright (C) 2009 Simon Pantzare
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -418,7 +417,7 @@ static PurplePluginInfo info = {
     PURPLE_PRIORITY_DEFAULT,
 
     PLUGIN_ID,
-    "Spotify \"Now Listening\" Plugin!",
+    "Spotify \"Now Listening\" Plugin",
     DISPLAY_VERSION, /* This constant is defined in config.h, but you shouldn't use it for
                         your own plugins.  We use it here because it's our plugin. And we're lazy. */
 
