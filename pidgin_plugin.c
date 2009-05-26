@@ -401,6 +401,7 @@ plugin_unload (PurplePlugin * plugin)
 {
     purple_timeout_remove(spotify_handle);
     spotify_free(spot);
+    purple_util_set_current_song (NULL, NULL, NULL);
     return TRUE;
 }
 
