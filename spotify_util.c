@@ -20,19 +20,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 #include <stdlib.h>
-#include <sys/types.h> /* for pid_t */
 #include <limits.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-
 #include "spotify_util.h"
 
 static inline gboolean _spotify_pid(pid_t *);
-static inline gboolean _parse_win_title(gchar *, gchar **, gchar **);
-static inline gboolean _win_title(pid_t pid, gchar **title);
-static void _search(Display *display, Window w, pid_t pid, gchar **win_title);
-static inline void _free_playing(spotify *);
+static inline gboolean _artist_title(spotify *);
+static inline gboolean _window(spotify *);
+static inline void _free_window(spotify *);
+static void _search_window(Display *display, Window w, spotify *res);
+static inline void _free_artist_title(spotify *);
+static inline void _free_win_title(spotify *);
+static gboolean _win_title(spotify *);
+static gboolean _refresh(spotify *);
 
 static inline gboolean 
 _spotify_pid(pid_t *pid) 
@@ -77,49 +76,68 @@ extern spotify * spotify_init(void)
 
     res->playing.artist = NULL;
     res->playing.title = NULL;
+    res->pid = -1;
+    res->win_title = NULL;
+    res->display = NULL;
+    res->window = NULL;
     return res;
 }
 
 void spotify_free(spotify *res)
 {
-    _free_playing(res);
+    _free_artist_title(res);
+    _free_win_title(res);
+    _free_window(res);
     free(res);
 }
 
-static inline void _free_playing(spotify *res)
+static inline void _free_artist_title(spotify *res)
 {
-    if (res->playing.artist != NULL)
+    if (res->playing.artist != NULL) {
         g_free(res->playing.artist);
-    if (res->playing.title != NULL)
+        res->playing.artist = NULL;
+    }
+    if (res->playing.title != NULL) {
         g_free(res->playing.title);
+        res->playing.title = NULL;
+    }
+}
+
+static inline gboolean _pid(spotify *res)
+{
+    res->pid = -1;
+    if (_spotify_pid(&res->pid) == FALSE)
+        return FALSE;
+    return TRUE;
+}
+
+static gboolean _refresh(spotify *res)
+{
+    if (_pid(res) == FALSE)
+        return FALSE;
+    if (_window(res) == FALSE)
+        return FALSE;
+    if (_win_title(res) == FALSE)
+        return FALSE;
+    if (_artist_title(res) == FALSE) {
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 extern gboolean spotify_update_playing(spotify *res)
 {
-    pid_t pid;
-    if (_spotify_pid(&pid) == FALSE) {
+    if (_refresh(res) == FALSE)
         return FALSE;
-    }
-
-    gchar *win_title;
-    if (_win_title(pid, &win_title) == FALSE) {
-        return FALSE;
-    }
-    
-    _free_playing(res);
-    if (_parse_win_title(win_title, &res->playing.artist, 
-                &res->playing.title) == FALSE) {
-        g_free(win_title);
-        return FALSE;
-    }
-
-    g_free(win_title);
     return TRUE;
 }
 
 static inline gboolean 
-_parse_win_title(gchar *win_title, gchar **artist, gchar **title)
+_artist_title(spotify *res)
 {
+    _free_artist_title(res);
+
     GRegex *regex = NULL;
     GMatchInfo *match_info = NULL;
 
@@ -127,42 +145,50 @@ _parse_win_title(gchar *win_title, gchar **artist, gchar **title)
      * artist name.
      */
     regex = g_regex_new("Spotify - (?P<ARTIST>.+) – (?P<TITLE>.+)", 0, 0, NULL);
-    g_regex_match(regex, win_title, 0, &match_info);
-    *artist = g_match_info_fetch_named(match_info, "ARTIST");
-    *title = g_match_info_fetch_named(match_info, "TITLE");
+    g_regex_match(regex, res->win_title, 0, &match_info);
+    res->playing.artist = g_match_info_fetch_named(match_info, "ARTIST");
+    res->playing.title = g_match_info_fetch_named(match_info, "TITLE");
 
     g_match_info_free(match_info);
     g_regex_unref(regex);
 
-    if (*artist == NULL || *title == NULL)
+    if (res->playing.artist == NULL || res->playing.title == NULL)
         return FALSE;
     return TRUE;
 }
 
-static inline gboolean _win_title(pid_t pid, gchar **title)
+static inline gboolean _window(spotify *res)
 {
+    res->display = NULL;
+    res->window = NULL;
+
     /* FIXME: What about multi-head setups? */
     Display *display = XOpenDisplay(NULL);
     Window root = XDefaultRootWindow(display);
-    gchar *tmp_title = NULL;
 
-    _search(display, root, pid, &tmp_title);
-    XCloseDisplay(display);
-
-    if (tmp_title == NULL)
+    _search_window(display, root, res);
+    if (res->window == NULL || res->display == NULL) {
+        XCloseDisplay(display);
         return FALSE;
-    *title = tmp_title;
+    }
     return TRUE;
 }
 
-static void _search(Display *display, Window w, pid_t pid, gchar **win_title)
+static inline void _free_window(spotify *res)
+{
+    if (res->display == NULL)
+        return;
+    
+    XCloseDisplay(res->display);
+}
+
+static void _search_window(Display *display, Window w, spotify *res)
 {
     Atom           type;
     int            format;
     unsigned long  n_items;
     unsigned long  bytes_after;
     unsigned char *prop_pid = 0;
-    unsigned char *prop_title = 0;
 
     if(XGetWindowProperty(display, w, 
                 XInternAtom(display, "_NET_WM_PID", True),
@@ -170,27 +196,16 @@ static void _search(Display *display, Window w, pid_t pid, gchar **win_title)
                 XA_CARDINAL, &type, &format, &n_items, &bytes_after, &prop_pid)
             == Success) {
         if(prop_pid != 0) {
-            if(pid == (pid_t)*((unsigned long *)prop_pid)) {
-                Atom utf8_string = XInternAtom(display, "UTF8_STRING", 0);
-                if (XGetWindowProperty(display, w,
-                            XInternAtom(display, "_NET_WM_NAME", 0),
-                            0, LONG_MAX, False,
-                            utf8_string, &type, &format, &n_items, &bytes_after,
-                            &prop_title)
-                        == Success) {
-                    if (type == utf8_string && format == 8 && n_items != 0) {
-                        *win_title = g_strdup((char *)prop_title);
-                    }
-
-                    XFree(prop_title);
-                }
+            if(res->pid == (pid_t)*((unsigned long *)prop_pid)) {
+                res->display = display;
+                res->window = w;
             }
 
             XFree(prop_pid);
         }
     }
 
-    if (*win_title == NULL) {
+    if (res->window == NULL) {
         Window    w_root;
         Window    w_parent;
         Window   *w_child;
@@ -198,11 +213,48 @@ static void _search(Display *display, Window w, pid_t pid, gchar **win_title)
 
         if(XQueryTree(display, w, &w_root, &w_parent, &w_child, 
                     &n_children) != 0) {
-            for (size_t i = 0; i < n_children && *win_title == NULL; ++i) 
-                _search(display, w_child[i], pid, win_title);
+            for (size_t i = 0; i < n_children && res->window == NULL; ++i) 
+                _search_window(display, w_child[i], res);
 
             if (w_child != NULL)
                 XFree(w_child);
         }
+    }
+}
+
+static gboolean _win_title(spotify *res)
+{
+    _free_win_title(res);
+    gboolean to_return = FALSE;
+
+    Atom           type;
+    int            format;
+    unsigned long  n_items;
+    unsigned long  bytes_after;
+    unsigned char *prop_title = 0;
+
+    Atom utf8_string = XInternAtom(res->display, "UTF8_STRING", 0);
+    if (XGetWindowProperty(res->display, res->window,
+                XInternAtom(res->display, "_NET_WM_NAME", 0),
+                0, LONG_MAX, False,
+                utf8_string, &type, &format, &n_items, &bytes_after,
+                &prop_title)
+            == Success) {
+        if (type == utf8_string && format == 8 && n_items != 0) {
+            res->win_title = g_strdup((char *)prop_title);
+            to_return = TRUE;
+        }
+
+        XFree(prop_title);
+    }
+
+    return to_return;
+}
+
+static inline void _free_win_title(spotify *res)
+{
+    if (res->win_title != NULL) {
+        g_free(res->win_title);
+        res->win_title = NULL;
     }
 }

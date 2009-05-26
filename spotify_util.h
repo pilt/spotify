@@ -23,6 +23,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SPOTIFY_UTIL_H
 
 #include <glib.h>
+#include <sys/types.h> /* for pid_t */
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
 
 struct spotify_playing;
 struct spotify;
@@ -34,6 +37,10 @@ typedef struct spotify_playing {
 
 typedef struct spotify {
     spotify_playing playing;
+    pid_t pid;
+    gchar *win_title;
+    Display *display;
+    Window window;
 } spotify;
 
 extern spotify * spotify_init(void); 
