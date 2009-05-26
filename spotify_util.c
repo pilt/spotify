@@ -22,6 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdlib.h>
 #include <limits.h>
 #include "spotify_util.h"
+#include <stdio.h>
 
 static inline gboolean _spotify_pid(pid_t *);
 static inline gboolean _artist_title(spotify *);
@@ -55,13 +56,13 @@ _spotify_pid(pid_t *pid)
                 &cmd_out, NULL, &cmd_return, NULL) == FALSE) {
         return FALSE;
     }
+    g_free(cmd); 
     
     tmp_pid = g_ascii_strtod(cmd_out, NULL);
-    if (tmp_pid == 0)
-        return FALSE; /* `g_ascii_strtod' returns 0 on failure. */
-
-    g_free(cmd); 
     g_free(cmd_out);
+    if (tmp_pid == 0) {
+        return FALSE; /* `g_ascii_strtod' returns 0 on failure. */
+    }
 
     /* FIXME: We should check that `tmp_pid' is in range. */
     *pid = tmp_pid;
@@ -113,15 +114,42 @@ static inline gboolean _pid(spotify *res)
 
 static gboolean _refresh(spotify *res)
 {
-    if (_pid(res) == FALSE)
-        return FALSE;
-    if (_window(res) == FALSE)
-        return FALSE;
-    if (_win_title(res) == FALSE)
-        return FALSE;
+    gboolean pid_changed = FALSE;
+    gboolean got_title = FALSE;
+
+    if (res->pid == -1) {
+        puts("just started, find pid");
+        pid_changed = TRUE;
+        if (_pid(res) == FALSE)
+            return FALSE;
+    }
+    else {
+        puts("find new pid");
+        pid_t last_pid = res->pid;
+
+        if (_pid(res) == FALSE)
+            return FALSE;
+
+        if (last_pid != res->pid) 
+            pid_changed = TRUE;
+    }
+
+    if (pid_changed || res->window == NULL) {
+        puts("just started OR pid changed, find window");
+        if (_window(res) == FALSE)
+            return FALSE;
+    }
+    
+    if (got_title == FALSE) {
+        puts("fetch title");
+        if (_win_title(res) == FALSE)
+            return FALSE;
+    }
+
     if (_artist_title(res) == FALSE) {
         return FALSE;
     }
+    puts("artist / title found");
 
     return TRUE;
 }
@@ -226,6 +254,9 @@ static void _search_window(Display *display, Window w, spotify *res)
 
 static gboolean _win_title(spotify *res)
 {
+    if (res->display == NULL || res->window == NULL)
+        return FALSE;
+
     _free_win_title(res);
     gboolean to_return = FALSE;
 
