@@ -415,8 +415,7 @@ static PurplePluginInfo info = {
 
     PLUGIN_ID,
     "Spotify \"Now Listening\" Plugin",
-    DISPLAY_VERSION, /* This constant is defined in config.h, but you shouldn't use it for
-                        your own plugins.  We use it here because it's our plugin. And we're lazy. */
+    "2.5.5",
 
     "Spotify \"Now Listening\" Plugin",
     "Spotify \"Now Listening\" Plugin",
