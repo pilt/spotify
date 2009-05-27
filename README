@@ -8,3 +8,7 @@ C Version
 ---------
 If you want a faster version, nun `make' and put spotify_playing in
 ~/.irssi/scripts.
+
+Pidgin Plugin
+-------------
+Run `make'. Put spotify_playing.so in ~/.purple/plugins.
