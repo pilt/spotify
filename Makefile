@@ -1,5 +1,4 @@
 CFLAGS ?= -g
-# FIXME: Only use libpurple when it's needed.
 PKGS=glib-2.0 x11 
 CFLAGS += -Wall -Wextra -Wno-long-long -pedantic -std=c99 -fPIC \
 		  $(shell pkg-config --cflags --libs $(PKGS))
