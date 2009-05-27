@@ -2,8 +2,7 @@ CFLAGS ?= -g
 # FIXME: Only use libpurple when it's needed.
 PKGS=glib-2.0 x11 
 CFLAGS += -Wall -Wextra -Wno-long-long -pedantic -std=c99 -fPIC \
-		  $(shell pkg-config --cflags $(PKGS)) \
-		  $(shell pkg-config --libs $(PKGS))
+		  $(shell pkg-config --cflags --libs $(PKGS))
 PIDGIN_FLAGS=$(shell pkg-config --cflags --libs purple)
 EXEC=spotify_util_test spotify_playing
 PIDGIN_PLUGIN=spotify_playing.so
