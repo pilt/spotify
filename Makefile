@@ -1,13 +1,14 @@
 CFLAGS ?= -g
 # FIXME: Only use libpurple when it's needed.
 PKGS=glib-2.0 x11 
-CFLAGS += -Wall -Wextra -Wno-long-long -pedantic -std=c99 \
+CFLAGS += -Wall -Wextra -Wno-long-long -pedantic -std=c99 -fPIC \
 		  $(shell pkg-config --cflags $(PKGS)) \
 		  $(shell pkg-config --libs $(PKGS))
 PIDGIN_FLAGS=$(shell pkg-config --cflags --libs purple)
 EXEC=spotify_util_test spotify_playing
+PIDGIN_PLUGIN=spotify_playing.so
 
-all: $(EXEC) spotify_playing.so
+all: $(EXEC) $(PIDGIN_PLUGIN)
 $(EXEC): spotify_util.o 
 
 clean:
@@ -15,6 +16,6 @@ clean:
 
 .PHONY: all test
 
-spotify_playing.so: pidgin_plugin.c
-	cc -shared -fPIC $^ $(CFLAGS) $(PIDGIN_FLAGS) -o $@
+$(PIDGIN_PLUGIN): pidgin_plugin.c spotify_util.o
+	cc -shared $^ $(CFLAGS) $(PIDGIN_FLAGS) -o $@
 
