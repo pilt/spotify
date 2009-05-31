@@ -53,6 +53,7 @@ _spotify_pid(pid_t *pid)
     cmd = g_strconcat("pgrep -u ", user, " spotify.exe", NULL);
     if (g_spawn_command_line_sync(cmd, 
                 &cmd_out, NULL, &cmd_return, NULL) == FALSE) {
+        g_free(cmd);
         return FALSE;
     }
     g_free(cmd); 
