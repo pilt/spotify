@@ -164,7 +164,7 @@ _artist_title(spotify *res)
     GMatchInfo *match_info = NULL;
 
     /* XXX: The result will be unexpected when there is a `–' sign in the
-     * artist name.
+     * artist name. Notice that this is a long and not a normal dash.
      */
     regex = g_regex_new("Spotify - (?P<ARTIST>.+) – (?P<TITLE>.+)", 0, 0, NULL);
     g_regex_match(regex, res->win_title, 0, &match_info);
