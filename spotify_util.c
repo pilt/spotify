@@ -80,7 +80,7 @@ extern spotify * spotify_init(void)
     res->pid = -1;
     res->win_title = NULL;
     res->display = NULL;
-    res->window = NULL;
+    res->window = (Window)NULL;
     return res;
 }
 
@@ -133,7 +133,7 @@ static gboolean _refresh(spotify *res)
             pid_changed = TRUE;
     }
 
-    if (pid_changed || res->window == NULL) {
+    if (pid_changed || res->window == (Window)NULL) {
         if (_window(res) == FALSE)
             return FALSE;
     }
@@ -188,7 +188,7 @@ static inline gboolean _window(spotify *res)
     Window root = XDefaultRootWindow(display);
 
     _search_window(display, root, res);
-    if (res->window == NULL || res->display == NULL) {
+    if (res->window == (Window)NULL || res->display == NULL) {
         XCloseDisplay(display);
         return FALSE;
     }
@@ -201,8 +201,8 @@ static inline void _free_window(spotify *res)
         XCloseDisplay(res->display);
         res->display = NULL;
     }
-    if (res->window != NULL) {
-        res->window = NULL;
+    if (res->window != (Window)NULL) {
+        res->window = (Window)NULL;
     }
 }
 
@@ -229,7 +229,7 @@ static void _search_window(Display *display, Window w, spotify *res)
         }
     }
 
-    if (res->window == NULL) {
+    if (res->window == (Window)NULL) {
         Window    w_root;
         Window    w_parent;
         Window   *w_child;
@@ -237,7 +237,7 @@ static void _search_window(Display *display, Window w, spotify *res)
 
         if(XQueryTree(display, w, &w_root, &w_parent, &w_child, 
                     &n_children) != 0) {
-            for (size_t i = 0; i < n_children && res->window == NULL; ++i) 
+            for (size_t i = 0; i < n_children && res->window == (Window)NULL; ++i) 
                 _search_window(display, w_child[i], res);
 
             if (w_child != NULL)
@@ -248,7 +248,7 @@ static void _search_window(Display *display, Window w, spotify *res)
 
 static gboolean _win_title(spotify *res)
 {
-    if (res->display == NULL || res->window == NULL)
+    if (res->display == NULL || res->window == (Window)NULL)
         return FALSE;
 
     _free_win_title(res);
