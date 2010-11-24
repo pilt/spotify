@@ -50,7 +50,7 @@ _spotify_pid(pid_t *pid)
     /* There can be at most one running instance of Spotify per user so this
      * must do.
      */
-    cmd = g_strconcat("pgrep -u ", user, " spotify.exe", NULL);
+    cmd = g_strconcat("pgrep -u ", user, " spotify", NULL);
     if (g_spawn_command_line_sync(cmd, 
                 &cmd_out, NULL, &cmd_return, NULL) == FALSE) {
         g_free(cmd);
